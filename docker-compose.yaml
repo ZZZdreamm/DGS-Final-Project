@@ -1,0 +1,47 @@
+services:
+  hermes:
+    image: anleopa/hermes:latest
+    ports:
+      - 8787:8787
+    volumes:
+      - C:\Users\KMult\OneDrive\Pulpit\studia sem 6\genomes\Project:/home/rstudio
+    environment:
+      - DISABLE_AUTH=true
+  ulises-backend:
+    image: anleopa/delfos_platform:latest
+    ports:
+      - "2090:2090"
+    working_dir: /app/ulises
+    command: npm run run_production --port 2090  # Run in production mode
+    environment:
+      - PORT=2090
+    networks:
+      - oragendelf-network
+
+  delfos-backend:
+    image: anleopa/delfos_platform:latest
+    ports:
+      - "3010:3010"
+      - "3306:3306"
+    working_dir: /app/delfos
+    entrypoint: ['/usr/local/bin/entrypoint.sh']
+    environment:
+      - NODE_OPTIONS=--openssl-legacy-provider
+    networks:
+      - oragendelf-network
+
+  sibila-backend:
+    image: anleopa/delfos_platform:latest
+    ports:
+      - "3030:3030"
+    working_dir: /app/sibila
+    command: npm run run_production --port 3030  # Run in production mode
+    environment:
+      - NODE_OPTIONS=--openssl-legacy-provider
+      - PORT=3030
+    networks:
+      - oragendelf-network
+
+networks:
+  oragendelf-network:
+    driver: bridge
