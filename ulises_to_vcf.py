@@ -67,4 +67,4 @@ def generate_vcf_from_json(json_file, output_file):
 
 # Run script
 if __name__ == "__main__":
-    generate_vcf_from_json("path_to_ulises_file", "path_for_storage/variants_ulises.vcf")
+    generate_vcf_from_json("data-processed.json", "diseases/variants_ulises.vcf")
