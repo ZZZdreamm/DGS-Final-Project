@@ -13,12 +13,12 @@ def setup_database():
     query = """
     CREATE TABLE IF NOT EXISTS variants_delfos (
         id SERIAL PRIMARY KEY,
-        chromosome VARCHAR(255),
         position INT,
-        reference VARCHAR(255),
-        alternate VARCHAR(255),
+        chromosome VARCHAR(10000),
+        reference VARCHAR(10000),
+        alternate VARCHAR(10000),
         quality FLOAT,
-        filter VARCHAR(255),
+        filter VARCHAR(10000),
         info TEXT
     );
     """
@@ -45,16 +45,27 @@ def insert_variant(chrom, pos, ref, alt, qual, fltr, info):
 def process_vcf(vcf_file):
     setup_database()
     reader = vcfpy.Reader.from_path(vcf_file)
-    for record in reader:
-        chrom = record.CHROM
-        pos = record.POS if record.POS is not None else 1
-        ref = record.REF
-        alt = ",".join(str(a) for a in record.ALT)
-        qual = record.QUAL
-        fltr = ",".join(record.FILTER) if record.FILTER else "PASS"
-        info = str(record.INFO)
 
-        insert_variant(chrom, pos, ref, alt, qual, fltr, info)
+    while True:
+        try:
+            record = next(reader)
+            chrom = record.CHROM
+            pos = record.POS if record.POS is not None else 1
+            ref = record.REF
+            alt = ";".join(str(a) for a in record.ALT)
+            qual = record.QUAL
+            fltr = ";".join(record.FILTER) if record.FILTER else "PASS"
+            info = str(record.INFO)
+
+            insert_variant(chrom, pos, ref, alt, qual, fltr, info)
+
+        except StopIteration:
+            break
+        except ValueError as _:
+            continue
+
+
+
 
 # Run the process
 vcf_file = "variants_ulises.vcf"
