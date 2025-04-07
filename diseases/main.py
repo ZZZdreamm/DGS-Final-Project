@@ -8,33 +8,21 @@ DB_PARAMS = {
     "host": "localhost",
     "port": "5332"
 }
-
+VARIANTS_TABLE = "variants_delfos"
+PATIENTS_TABLE = "variants_patients"
 variants_vcf_file = "variants_ulises.vcf"
 patients_vcf_file = "patient_vcf_file.vcf"
 
-def setup_database():
-    query = """
-    CREATE TABLE IF NOT EXISTS variants_delfos (
+def setup_database(table):
+    query = f"""
+    CREATE TABLE IF NOT EXISTS {table} (
         id SERIAL PRIMARY KEY,
         position INT,
-        chromosome VARCHAR(10000),
-        reference VARCHAR(10000),
-        alternate VARCHAR(10000),
+        chromosome VARCHAR(255),
+        reference VARCHAR(255),
+        alternate VARCHAR(255),
         quality FLOAT,
-        filter VARCHAR(10000),
-        info TEXT
-    );
-    """
-
-    query2 = """
-    CREATE TABLE IF NOT EXISTS variants_patients (
-        id SERIAL PRIMARY KEY,
-        position INT,
-        chromosome VARCHAR(10000),
-        reference VARCHAR(10000),
-        alternate VARCHAR(10000),
-        quality FLOAT,
-        filter VARCHAR(10000),
+        filter VARCHAR(255),
         info TEXT
     );
     """
@@ -42,7 +30,6 @@ def setup_database():
         with psycopg2.connect(**DB_PARAMS) as conn:
             with conn.cursor() as cur:
                 cur.execute(query)
-                cur.execute(query2)
                 conn.commit()
     except Exception as e:
         print("Database insertion error:", e)
@@ -75,9 +62,9 @@ def process_vcf(vcf_file):
             info = str(record.INFO)
 
             if vcf_file == variants_vcf_file:
-                table = "variants_delfos"
+                table = VARIANTS_TABLE
             else:
-                table = "variants_patients"
+                table = PATIENTS_TABLE
             insert_variant(table, chrom, pos, ref, alt, qual, fltr, info)
 
         except StopIteration:
@@ -131,7 +118,9 @@ def drop_tables():
 
 
 if __name__ == "__main__":
-    setup_database()
+    drop_tables()
+    setup_database(VARIANTS_TABLE)
+    setup_database(PATIENTS_TABLE)
     process_vcf(variants_vcf_file)
     process_vcf(patients_vcf_file)
     comparison_algorithm()
