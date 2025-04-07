@@ -43,6 +43,42 @@ def setup_database():
                 conn.commit()
     except Exception as e:
         print("Database insertion error:", e)
+        
+
+def comparison_algorithm():
+    query = """
+            SELECT 
+    json_array_elements_text(REPLACE(d.info, '''', '"')::json -> 'PHENOTYPE') AS phenotype,
+    json_array_elements_text(REPLACE(d.info, '''', '"')::json -> 'CLINICAL_ACTIONABILITY') AS clinical_actionability,
+    json_array_elements_text(REPLACE(d.info, '''', '"')::json -> 'INTERPRETATION') AS interpretation
+        FROM  
+        variants_delfos d
+        JOIN 
+            variants_patients p 
+        ON 
+            d.chromosome = SUBSTRING(p.chromosome FROM 4) AND
+            d.position = p.position AND
+            d.reference = p.reference AND
+            d.alternate = p.alternate;
+        """
+    try:
+        with psycopg2.connect(**DB_PARAMS) as conn:
+            with conn.cursor() as cur:
+                # Execute the SELECT query
+                cur.execute(query)
+
+                # Fetch all results
+                results = cur.fetchall()
+
+                # Do something with the results
+                print("Number of matches: ", len(results))
+                for row in results:
+                    print()
+                    print("Phenotype associated: ", row[0], ", Clinical actionability: ", row[1], ", Interpretation: ", row[2])
+
+
+    except Exception as e:
+        print("Database query error:", e)
 
 def insert_variant(chrom, pos, ref, alt, qual, fltr, info):
     query = """
@@ -88,3 +124,4 @@ if __name__ == "__main__":
     patients_vcf_file = "patient_vcf_file.vcf"
     # process_vcf(variants_vcf_file)
     # process_vcf(patients_vcf_file)
+    comparison_algorithm()
