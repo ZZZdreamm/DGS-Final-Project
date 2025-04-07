@@ -22,10 +22,24 @@ def setup_database():
         info TEXT
     );
     """
+
+    query2 = """
+    CREATE TABLE IF NOT EXISTS variants_patients (
+        id SERIAL PRIMARY KEY,
+        position INT,
+        chromosome VARCHAR(10000),
+        reference VARCHAR(10000),
+        alternate VARCHAR(10000),
+        quality FLOAT,
+        filter VARCHAR(10000),
+        info TEXT
+    );
+    """
     try:
         with psycopg2.connect(**DB_PARAMS) as conn:
             with conn.cursor() as cur:
                 cur.execute(query)
+                cur.execute(query2)
                 conn.commit()
     except Exception as e:
         print("Database insertion error:", e)
@@ -67,6 +81,10 @@ def process_vcf(vcf_file):
 
 
 
-# Run the process
-vcf_file = "variants_ulises.vcf"
-process_vcf(vcf_file)
+
+
+if __name__ == "__main__":
+    variants_vcf_file = "variants_ulises.vcf"
+    patients_vcf_file = "patient_vcf_file.vcf"
+    # process_vcf(variants_vcf_file)
+    # process_vcf(patients_vcf_file)
